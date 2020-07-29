@@ -69,6 +69,7 @@ public class ThemeSettings extends SettingsPreferenceFragment implements
     private static final String ACCENT_COLOR_PROP = "persist.sys.theme.accentcolor";
     private static final String PREF_THEME_ACCENT_COLOR = "theme_accent_color";
     private static final String ACCENT_PRESET = "accent_preset";
+    private static final String QS_HEADER_STYLE = "qs_header_style";
 
     private IOverlayManager mOverlayManager;
     private SharedPreferences mSharedPreferences;
@@ -80,6 +81,7 @@ public class ThemeSettings extends SettingsPreferenceFragment implements
     private SwitchPreference mRoundedFwvals;
     private ColorPickerPreference rgbAccentPicker;
     private ListPreference mAccentPreset;
+    private ListPreference mQsHeaderStyle;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -99,6 +101,14 @@ public class ThemeSettings extends SettingsPreferenceFragment implements
         } catch (NameNotFoundException e) {
             e.printStackTrace();
         }
+
+        mQsHeaderStyle = (ListPreference) findPreference(QS_HEADER_STYLE);
+        int qsHeaderStyle = Settings.System.getInt(ctx.getContentResolver(),
+                Settings.System.QS_HEADER_STYLE, 0);
+        int valueIndex = mQsHeaderStyle.findIndexOfValue(String.valueOf(qsHeaderStyle));
+        mQsHeaderStyle.setValueIndex(valueIndex >= 0 ? valueIndex : 0);
+        mQsHeaderStyle.setSummary(mQsHeaderStyle.getEntry());
+        mQsHeaderStyle.setOnPreferenceChangeListener(this);
 
         // Rounded Corner Radius
         mCornerRadius = (CustomSeekBarPreference) findPreference(SYSUI_ROUNDED_SIZE);
@@ -185,6 +195,13 @@ public class ThemeSettings extends SettingsPreferenceFragment implements
                 mOverlayManager.reloadAssets("com.android.settings", UserHandle.USER_CURRENT);
                 mOverlayManager.reloadAssets("com.android.systemui", UserHandle.USER_CURRENT);
             } catch (RemoteException ignored) { }
+
+        } else if (preference == mQsHeaderStyle) {
+            int value = Integer.valueOf((String) newValue);
+            int newIndex = mQsHeaderStyle.findIndexOfValue((String) newValue);
+            Settings.System.putInt(getActivity().getContentResolver(),
+			             Settings.System.QS_HEADER_STYLE, value);
+            mQsHeaderStyle.setSummary(mQsHeaderStyle.getEntries()[newIndex]);
         }
         return true;
     }
